@@ -1,0 +1,3 @@
+# Taxonomy was detected from taxonomy.tsv, feature-table.tsv, and sequence.fasta files (from QIIME2) by R software.
+# The steps were followed from this website: https://www.yanh.org/2021/01/01/microbiome-r/
+# Finally graph plots and other figures based on the taxonomy was done by R software.
