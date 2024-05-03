@@ -6,7 +6,7 @@ wget https://data.qiime2.org/distro/core/qiime2-2021.4-py38-linux-conda.yml
 conda env create -n qiime2-2021.4 --file qiime2-2021.4-py38-linux-conda.yml
 conda activate qiime2-2021.4
 # Importing single-end reads (fastq files)
-## Manifest file is prepared prior to the following steps with the columns: sample-id; forward-absolute-filepath; reverse-absolute-filepath (attached)
+## Manifest file is prepared prior to the following steps with the columns: sample-id; forward-absolute-filepath; reverse-absolute-filepath
 qiime tools import --type 'SampleData[PairedEndSequencesWithQuality]' --input-path manifest.txt --output-path demux-paired.qza --input-format PairedEndFastqManifestPhred33V2
 ## Quality checking
 qiime demux summarize --i-data demux-paired.qza --o-visualization demux-paired.qzv
