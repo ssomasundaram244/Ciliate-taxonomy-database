@@ -1,0 +1,35 @@
+# Database created using RESCRIPt function
+## New version of qiime2 downloaded
+wget https://data.qiime2.org/distro/amplicon/qiime2-amplicon-2024.2-py38-linux-conda.yml
+conda env create -n qiime2-amplicon-2024.2 --file qiime2-amplicon-2024.2-py38-linux-conda.yml
+rm qiime2-amplicon-2024.2-py38-linux-conda.yml
+conda activate qiime2-amplicon-2024.2
+## For creating NCBI ITS Ref database from ciliates
+qiime rescript get-ncbi-data\ 
+--p-query "txid35493[ORGN] AND (ITS OR Internal Transcribed Spacer) NOT uncultured[Title] NOT unclassified[Title] NOT unidentified[Title] NOT verified[Title]" \
+  --o-sequences ncbi-refseqs.qza \
+  --o-taxonomy ncbi-refseqs-taxonomy.qza
+## Evaluation of sequence, taxonomy and classifier
+### Developing classifier file and its evaluation
+qiime rescript filter-seqs-length-by-taxon --i-sequences ncbi-refseqs.qza --i-taxonomy ncbi-refseqs-taxonomy.qza\
+  --o-classifier ncbi-refseqs-classifier.qza --o-evaluation ncbi-refseqs-classifier-evaluation.qzv --o-observed-taxonomy ncbi-refseqs-predicted-taxonomy.qza
+### Sequence evaluation
+qiime rescript evaluate-seqs --i-sequences ncbi-refseqs.qza --o-visualization sequences_evaluation.qzv
+### Taxonomy evaluation
+qiime rescript evaluate-taxonomy \
+  --i-taxonomies ncbi-refseqs-taxonomy.qza ncbi-refseqs-predicted-taxonomy.qza \
+  --p-labels taxonomy predicted-taxonomy \
+  --o-taxonomy-stats taxonomy-evaluation.qzv
+# The reference classifier file (ncbi-refseqs-classifier.qza) is used for further taxonomic evaluation of other unknown nucleotide sequences.
+# Similar to NCBI ITS Ref database, rumen database (RCROD) was created, except for the sequences.fasta file (attached) was prepared from the rumen ciliates (54 SAGs) containing only 18S-ITS1-5.8S-ITS2-28S rRNA region.
+qiime tools import \
+  --type 'FeatureData[Sequence]' \
+  --input-path sequences.fasta \
+  --output-path sequences.qza
+# Similarly, taxonomy file was created in .txt format (attached) and converted to .qza using Qiime function.
+qiime tools import \
+  --type 'FeatureData[Taxonomy]' \
+  --input-path your_taxonomy.txt \
+  --output-path taxonomy.qza \
+  --input-format HeaderlessTSVTaxonomyFormat
+# Similar to NCBI-ITS-Ref database, taxonomy, sequences and classifier were validated/evaluated. This classifier was further used to analyse rumen ciliate diversity (using QIIME2 as explained before).
