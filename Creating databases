@@ -6,7 +6,7 @@ rm qiime2-amplicon-2024.2-py38-linux-conda.yml
 conda activate qiime2-amplicon-2024.2
 ## For creating NCBI ITS Ref database from ciliates
 qiime rescript get-ncbi-data\ 
---p-query "txid35493[ORGN] AND (ITS OR Internal Transcribed Spacer) NOT uncultured[Title] NOT unclassified[Title] NOT unidentified[Title] NOT verified[Title]" \
+--p-query "txid5878[ORGN] AND (ITS OR Internal Transcribed Spacer) NOT uncultured[Title] NOT unclassified[Title] NOT unidentified[Title] NOT verified[Title]" \
   --o-sequences ncbi-refseqs.qza \
   --o-taxonomy ncbi-refseqs-taxonomy.qza
 ## Evaluation of sequence, taxonomy and classifier
