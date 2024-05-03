@@ -1,0 +1,44 @@
+# Qiime2 installation 
+#!/bin/bash
+## Install qiime2 in bash environment (Install from source)
+wget https://data.qiime2.org/distro/core/qiime2-2021.4-py38-linux-conda.yml
+## Create and activate the environment (with requirements)
+conda env create -n qiime2-2021.4 --file qiime2-2021.4-py38-linux-conda.yml
+conda activate qiime2-2021.4
+# Importing single-end reads (fastq files)
+## Manifest file is prepared prior to the following steps with the columns: sample-id; forward-absolute-filepath; reverse-absolute-filepath (attached)
+qiime tools import --type 'SampleData[PairedEndSequencesWithQuality]' --input-path manifest.txt --output-path demux-paired.qza --input-format PairedEndFastqManifestPhred33V2
+## Quality checking
+qiime demux summarize --i-data demux-paired.qza --o-visualization demux-paired.qzv
+qiime tools view demux-paired.qzv
+# Trimming the sequence by removing the primers specific to 18S/ITS1/ITS2/28S in freshwater (FW) and rumen (RU)
+qiime cutadapt trim-paired --i-demultiplexed-sequences demux-paired.qza --p-front-f GCTTTCGWTGGTAGTGTATT --p-front-r CAACGTCTCTATKAAYCG --p-error-rate 0 --o-trimmed-sequences SSU-demux-trimmed-seqs.qza
+qiime cutadapt trim-paired --i-demultiplexed-sequences demux-paired.qza --p-front-f CACCTAGAGGAAGGAGAAGTCG/TCGTAACAAGGTWTCYGTAGG --p-front-r CAYTGCATATCGCATTCTTGC/TGCWATTCGCAKTGCKTWTC --p-error-rate 0 --o-trimmed-sequences ITS1FW-demux-trimmed-seqs.qza/ITS1RU-demux-seqs.qza
+qiime cutadapt trim-paired --i-demultiplexed-sequences demux-paired.qza --p-front-f TTCRACGATGGATGTCTTGG/ATGAAGAACGCAGCSAAVTG --p-front-r TGCTTAAGTCCAGCGRGTC/TTAAGTTCAGCGGGTRDTC --p-error-rate 0 --o-trimmed-sequences ITS2FW-demux-trimmed-seqs.qza/ITS2RU-demux-trimmed-seqs.qza
+qiime cutadapt trim-paired --i-demultiplexed-sequences demux-paired.qza --p-front-f CGATAGCRWACAAGTACTRYGAA --p-front-r GACTCCTTGGTYCGTGTTTC --p-error-rate 0 --o-trimmed-sequences LSU-demux-trimmed-seqs.qza
+# Saving visualization
+qiime demux summarize --i-data demux-trimmed-seqs.qza --o-visualization x-demux-trimmed-seqs.qzv
+# Denoise and dereplicate paired-end sequences (Quality score of 20 is being selected)
+qiime dada2 denoise-paired --i-demultiplexed-seqs demux-trimmed-seqs.qza --p-trunc-len-f 210 --p-trunc-len-r 160 --o-table table_unfiltered.qza --o-representative-sequences rep-seqs_unfiltered.qza --o-denoising-stats denoising-stats.qza
+# Denoising-stats visualization
+qiime metadata tabulate --m-input-file denoising-stats.qza --o-visualization denoising-stats.qzv
+# Taxonomy classification
+## SILVA database for 18S (SILVA_138.1_SSURef_NR99) and 28S (SILVA_138.1_LSURef_NR99); NCBI ITS Ref database for ITS region in freshwater ciliates (attached)
+## Rumen database (RCROD) for rumen ciliates (attached)
+qiime feature-classifier classify-sklearn --i-classifier silva-138.1-99-nb-classifier.qza --i-reads rep-seqs_unfiltered.qza --o-classification taxonomy_Silva99_beginning.qza --p-confidence 0.8
+qiime feature-table filter-seqs --i-data rep-seqs_unfiltered.qza --i-table table.qza --p-no-exclude-ids --o-filtered-data rep-seqs.qza
+# Denoising-stats visualization
+qiime metadata tabulate --m-input-file denoising-stats.qza --o-visualization denoising-stats.qzv
+# Feature frequency
+qiime feature-table summarize --i-table table.qza --o-visualization table.qzv --m-sample-metadata-file metadata.txt
+# Rep-seqs visualization
+qiime feature-table tabulate-seqs --i-data rep-seqs.qza --o-visualization rep-seqs.qzv
+# Taxonomy classification
+qiime feature-classifier classify-sklearn --i-classifier silva-138-99-nb-classifier.qza --i-reads rep-seqs.qza --o-classification taxonomy_Silva99.qza --p-confidence 0.8
+## Construct a phylogenetic tree with FastTree
+qiime phylogeny align-to-tree-mafft-fasttree --i-sequences rep-seqs.qza --o-alignment aligned-rep-seqs.qza --o-masked-alignment masked-aligned-rep-seqs.qza --o-tree unrooted-tree.qza --o-rooted-tree rooted-tree.qza
+# Convert files to analyse in R
+biom convert -i feature-table.biom -o feature-table.tsv --to-tsv
+qiime tools export taxonomy.qza --output-dir exported/
+qiime tools export rooted-tree.qza --output-dir exported/
+qiime tools export rep-seqs.qza --output-dir exported/
