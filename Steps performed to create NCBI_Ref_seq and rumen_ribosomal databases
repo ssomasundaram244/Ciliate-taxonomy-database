@@ -21,15 +21,16 @@ qiime rescript evaluate-taxonomy \
   --p-labels taxonomy predicted-taxonomy \
   --o-taxonomy-stats taxonomy-evaluation.qzv
 # The reference classifier file (ncbi-refseqs-classifier.qza) is used for further taxonomic evaluation of other unknown nucleotide sequences.
-# Similar to NCBI ITS Ref database, rumen database (RCROD) was created, except for the sequences.fasta file (attached) was prepared from the rumen ciliates (54 SAGs) containing only 18S-ITS1-5.8S-ITS2-28S rRNA region.
+
+# Similar to NCBI ITS Ref database, rumen database (RCROD) was created, except for the Rumen_18S-ITS-28S.fasta file (attached) was prepared from the rumen ciliates (54 SAGs) containing only 18S-ITS1-5.8S-ITS2-28S rRNA region.
 qiime tools import \
   --type 'FeatureData[Sequence]' \
-  --input-path sequences.fasta \
-  --output-path sequences.qza
+  --input-path Rumen_18-ITS-28S.fasta \
+  --output-path Rumen_18-ITS-28S.qza
 # Similarly, taxonomy file was created in .txt format (attached) and converted to .qza using Qiime function.
 qiime tools import \
   --type 'FeatureData[Taxonomy]' \
-  --input-path your_taxonomy.txt \
-  --output-path taxonomy.qza \
+  --input-path Taxonomy_rumen.txt \
+  --output-path Taxonomy_rumen.qza \
   --input-format HeaderlessTSVTaxonomyFormat
 # Similar to NCBI-ITS-Ref database, taxonomy, sequences and classifier were validated/evaluated. This classifier was further used to analyse rumen ciliate diversity (using QIIME2 as explained before).
